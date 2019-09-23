@@ -63,8 +63,18 @@ class SDK {
 
     listenToOutgoingMessage() {
         this._event.on("onSendMessage", (json) => {
-            this.sendAMessage(json.message, json.jid, json.type, json.messageMarkdown);
+            let message = json.message;
+            if(this._onOutgoingMessageCallback){
+              message = this._onOutgoingMessageCallback
+                .call(this._onOutgoingMessageContext, message, json.jid, json.type, json.messageMarkdown);
+            }
+            this.sendAMessage(message, json.jid, json.type, json.messageMarkdown);
         });
+    }
+
+    onOutgoingMessage(callback, context){
+      this._onOutgoingMessageCallback = callback;
+      this._onOutgoingMessageContext = context;
     }
 
     getContact(jid) {

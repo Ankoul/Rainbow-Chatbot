@@ -106,6 +106,10 @@ class RainbowAgent {
         this._contextMessage = context;
     }
 
+    onResponse(func, context) {
+      this.sdk.onOutgoingMessage(func, context);
+    }
+
     onTicket(func, context) {
         this._callbackTicket = func;
         this._contextTicket = context;
