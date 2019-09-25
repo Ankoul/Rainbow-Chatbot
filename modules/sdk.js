@@ -63,12 +63,11 @@ class SDK {
 
     listenToOutgoingMessage() {
         this._event.on("onSendMessage", (json) => {
-            let message = json.message;
             if(this._onOutgoingMessageCallback){
-              message = this._onOutgoingMessageCallback
-                .call(this._onOutgoingMessageContext, message, json.jid, json.type, json.messageMarkdown);
+              json = this._onOutgoingMessageCallback
+                .call(this._onOutgoingMessageContext, json.message, json.jid, json.type, json.messageMarkdown);
             }
-            this.sendAMessage(message, json.jid, json.type, json.messageMarkdown);
+            this.sendAMessage(json.message, json.jid, json.type, json.messageMarkdown);
         });
     }
 
