@@ -63,11 +63,14 @@ class SDK {
 
     listenToOutgoingMessage() {
         this._event.on("onSendMessage", (json) => {
-            if(this._onOutgoingMessageCallback){
-              json = this._onOutgoingMessageCallback
-                .call(this._onOutgoingMessageContext, json.message, json.jid, json.type, json.messageMarkdown);
+            if(!this._onOutgoingMessageCallback){
+                this.sendAMessage(json.message, json.jid, json.type, json.messageMarkdown); 
             }
-            this.sendAMessage(json.message, json.jid, json.type, json.messageMarkdown);
+			let result = this._onOutgoingMessageCallback
+                .call(this._onOutgoingMessageContext, json.message, json.jid, json.type, json.messageMarkdown);
+			Promise.resolve(result).then((json)=>{
+				this.sendAMessage(json.message, json.jid, json.type, json.messageMarkdown); 
+			});
         });
     }
 
