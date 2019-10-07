@@ -31,12 +31,12 @@ class ChoicePlug {
     
                     // Check the accept
                     if(step.accept && Array.isArray(step.accept)) {
-                        let index = step.accept.indexOf(message);
+                        let index = step.accept.indexOf(message && message.trim().toLowerCase());
                         logger.log("info", LOG_ID + "getNextStep() - Work[" + work.id + "] - has a an index response of " + index);
                         next = step.next[index] || null;
                     }
                     else if(step.list && Array.isArray(step.list)) {
-                        let index = step.list.indexOf(message);
+                        let index = step.list.indexOf(message && message.trim().toLowerCase());
                         logger.log("info", LOG_ID + "getNextStep() - Work[" + work.id + "] - has a an index response of " + index);
                         next = step.next[index] || null;
                     }
