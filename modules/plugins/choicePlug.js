@@ -106,7 +106,7 @@ class ChoicePlug {
 
             let next = acceptStep.accept.map(() => step.next[i]);
             step.next.splice(i, 1, ...next);
-            i += next.length;
+            i += next.length -1;
             logger.log("info", LOG_ID + "replaceAccept() - [" + acceptId + "]");
         }
     }
