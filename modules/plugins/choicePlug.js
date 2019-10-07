@@ -102,10 +102,10 @@ class ChoicePlug {
                 continue;
             }
             let acceptStep = work.scenario[acceptId];
-            step.accept = step.accept.splice(i, 1, ...acceptStep.accept);
+            step.accept.splice(i, 1, ...acceptStep.accept);
 
             let next = acceptStep.accept.map(() => step.next[i]);
-            step.next = step.next.splice(i, 1, ...next);
+            step.next.splice(i, 1, ...next);
             i += next.length;
             logger.log("info", LOG_ID + "replaceAccept() - [" + acceptId + "]");
         }
