@@ -5,13 +5,14 @@ const LOG_ID = "CHOICEPLG - ";
 class ChoicePlug {
 
     constructor() {
+        this.execute.bind(this);
     }
 
     getNextStep(work, step, logger) {
         // Get the historized message
 
         let next = null;
-        
+
         if(Array.isArray(step.next) && step.next.length > 1) {
 
             logger.log("info", LOG_ID + "getNextStep() - Work[" + work.id + "] - has a complexe next step");
@@ -28,7 +29,7 @@ class ChoicePlug {
                     let message = historyItem.content;
 
                     logger.log("info", LOG_ID + "getNextStep() - Work[" + work.id + "] - has an history value " + message);
-    
+
                     // Check the accept
                     if(step.accept && Array.isArray(step.accept)) {
                         let index = step.accept.indexOf(message && message.trim().toLowerCase());
@@ -36,7 +37,7 @@ class ChoicePlug {
                         next = step.next[index] || null;
                     }
                     else if(step.list && Array.isArray(step.list)) {
-                        let index = step.list.indexOf(message && message.trim().toLowerCase());
+                        let index = step.list.indexOf(message);
                         logger.log("info", LOG_ID + "getNextStep() - Work[" + work.id + "] - has a an index response of " + index);
                         next = step.next[index] || null;
                     }
@@ -53,7 +54,7 @@ class ChoicePlug {
                 }
             } else {
                 next = step.next || null;
-            }          
+            }
         }
 
         logger.log("info", LOG_ID + "getNextStep() - Work[" + work.id + "] - found next step " + next);
@@ -63,8 +64,10 @@ class ChoicePlug {
 
     execute(work, step, event, logger) {
         logger.log("info", LOG_ID + "execute() - Work[" + work.id + "] - choice");
+        this.replaceAccept(work, step, logger);
+
         event.emit("onSendMessage", {
-            message: step.value ? step.value : "", 
+            message: step.value ? step.value : "",
             jid: work.jid,
             type: "choice"
         });
@@ -73,13 +76,13 @@ class ChoicePlug {
         let list = "";
 
         step.list.forEach((choice) => {
-            message += "- " + choice + "\r\n"; 
+            message += "- " + choice + "\r\n";
             list += list.length === 0 ? choice : ',' + choice;
         });
 
         event.emit("onSendMessage", {
             message: list,
-            messageMarkdown: message, 
+            messageMarkdown: message,
             jid: work.jid,
             type: "list"
         });
@@ -87,6 +90,25 @@ class ChoicePlug {
         work.pending = true;
         work.waiting = step.waiting ? step.waiting : 0;
         logger.log("info", LOG_ID + "execute() - Work[" + work.id + "] - finished choice");
+    }
+
+    replaceAccept(work, step, logger) {
+        if (!step.accept || !Array.isArray(step.accept)) {
+            return;
+        }
+        for (let i = 0; i < step.accept.length; i++) {
+            let acceptId = step.accept[i];
+            if (!acceptId.startsWith('$')) {
+                continue;
+            }
+            let acceptStep = work.scenario[acceptId];
+            step.accept = step.accept.splice(i, 1, ...acceptStep.accept);
+
+            let next = acceptStep.accept.map(() => next[i]);
+            step.next = step.next.splice(i, 1, ...next);
+            i += next.length;
+            logger.log("info", LOG_ID + "replaceAccept() - [" + acceptId + "]");
+        }
     }
 
     isValid(work, step, content, event, logger) {
@@ -98,7 +120,7 @@ class ChoicePlug {
             // An accept tag is defined - Use it to check the content sent
             if(step.accept) {
                 // If yes check that the content matches one of the item accepted
-                if (step.accept.includes(content)) {
+                if (step.accept.includes(content && content.trim().toLowerCase())) {
                     logger.log("info", LOG_ID + "isValid() - Work[" + work.id + "] - answer is valid (accept)");
                     return true;
                 } else {
@@ -121,7 +143,7 @@ class ChoicePlug {
                 }
                 else {
                     logger.log("warn", LOG_ID + "isValid() - Work[" + work.id + "] - answer is not valid", content);
-    
+
                     if("invalid" in step) {
                         event.emit("onSendMessage", {
                             message: step.invalid,
