@@ -22,26 +22,30 @@ class ChoicePlug {
                     return item.step === work.step;
                 });
 
-                if(historyItem) {
-
-                    logger.log("info", LOG_ID + "getNextStep() - Work[" + work.id + "] - has an history item for step " + work.step);
-
-                    let message = historyItem.content;
-
-                    logger.log("info", LOG_ID + "getNextStep() - Work[" + work.id + "] - has an history value " + message);
-
-                    // Check the accept
-                    if(step.accept && Array.isArray(step.accept)) {
-                        let index = step.accept.indexOf(message && message.trim().toLowerCase());
-                        logger.log("info", LOG_ID + "getNextStep() - Work[" + work.id + "] - has a an index response of " + index);
-                        next = step.next[index] || null;
-                    }
-                    else if(step.list && Array.isArray(step.list)) {
-                        let index = step.list.indexOf(message);
-                        logger.log("info", LOG_ID + "getNextStep() - Work[" + work.id + "] - has a an index response of " + index);
-                        next = step.next[index] || null;
-                    }
+                if (!historyItem) {
+                    logger.log("info", LOG_ID + "getNextStep() - Work[" + work.id + "] - found next step " + next);
+                    return next;
                 }
+                logger.log("info", LOG_ID + "getNextStep() - Work[" + work.id + "] - has an history item for step " + work.step);
+
+                let message = historyItem.content;
+
+                logger.log("info", LOG_ID + "getNextStep() - Work[" + work.id + "] - has an history value " + message);
+
+                // Check the accept
+                if (step.accept && Array.isArray(step.accept)) {
+                    let normalizedMessage = message.trim().toLowerCase().normalize("NFD")
+                        .replace(/[\u0300-\u036f]/g, "")
+                        .replace(/["'!@#$£%¢¨¬&\\*|()_\-+=§`´{}[\]ªº^~,<>.?/°;:]/g, "");
+                    let index = step.accept.indexOf(normalizedMessage);
+                    logger.log("info", LOG_ID + "getNextStep() - Work[" + work.id + "] - has a an index response of " + index);
+                    next = step.next[index] || null;
+                } else if (step.list && Array.isArray(step.list)) {
+                    let index = step.list.indexOf(message);
+                    logger.log("info", LOG_ID + "getNextStep() - Work[" + work.id + "] - has a an index response of " + index);
+                    next = step.next[index] || null;
+                }
+
             }
         }
         else {
