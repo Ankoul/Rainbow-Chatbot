@@ -72,20 +72,22 @@ class ChoicePlug {
             type: "choice"
         });
 
-        let message = "";
-        let list = "";
+        if (step.list) {
+            let message = "";
+            let list = "";
 
-        step.list.forEach((choice) => {
-            message += "- " + choice + "\r\n";
-            list += list.length === 0 ? choice : ',' + choice;
-        });
+            step.list.forEach((choice) => {
+                message += "- " + choice + "\r\n";
+                list += list.length === 0 ? choice : ',' + choice;
+            });
 
-        event.emit("onSendMessage", {
-            message: list,
-            messageMarkdown: message,
-            jid: work.jid,
-            type: "list"
-        });
+            event.emit("onSendMessage", {
+                message: list,
+                messageMarkdown: message,
+                jid: work.jid,
+                type: "list"
+            });
+        }
 
         work.pending = true;
         work.waiting = step.waiting ? step.waiting : 0;
@@ -114,50 +116,44 @@ class ChoicePlug {
     isValid(work, step, content, event, logger) {
         logger.log("info", LOG_ID + "isValid() - Work[" + work.id + "] - check answer validity...");
 
-        // Answer is not valid in all cases if list tag is not defined
-        if(step.list) {
-
-            // An accept tag is defined - Use it to check the content sent
-            if(step.accept) {
-                // If yes check that the content matches one of the item accepted
-                if (step.accept.includes(content && content.trim().toLowerCase())) {
-                    logger.log("info", LOG_ID + "isValid() - Work[" + work.id + "] - answer is valid (accept)");
-                    return true;
-                } else {
-                    logger.log("warn", LOG_ID + "isValid() - Work[" + work.id + "] - answer is not valid (accept)", content);
-
-                    if("invalid" in step) {
-                        event.emit("onSendMessage", {
-                            message: step.invalid,
-                            jid: work.jid,
-                            type: "list"
-                        });
-                    }
-                    return false;
-                }
-            } else {
-                // No accept values defined - Use the list to check the content sent
-                if(step.list.includes(content)) {
-                    logger.log("info", LOG_ID + "isValid() - Work[" + work.id + "] - answer is valid (list)");
-                    return true;
-                }
-                else {
-                    logger.log("warn", LOG_ID + "isValid() - Work[" + work.id + "] - answer is not valid", content);
-
-                    if("invalid" in step) {
-                        event.emit("onSendMessage", {
-                            message: step.invalid,
-                            jid: work.jid,
-                            type: "list"
-                        });
-                    }
-                    return false;
-                }
+        // An accept tag is defined - Use it to check the content sent
+        if (step.accept) {
+            // If yes check that the content matches one of the item accepted
+            if (step.accept.includes(content && content.trim().toLowerCase())) {
+                logger.log("info", LOG_ID + "isValid() - Work[" + work.id + "] - answer is valid (accept)");
+                return true;
             }
-        }
-        else {
+            logger.log("warn", LOG_ID + "isValid() - Work[" + work.id + "] - answer is not valid (accept)", content);
+
+            if ("invalid" in step) {
+                event.emit("onSendMessage", {
+                    message: step.invalid,
+                    jid: work.jid,
+                    type: "list"
+                });
+            }
             return false;
         }
+
+        // Answer is not valid if list tag and accept tag are not defined
+        if (!step.list) {
+            return false;
+        }
+        // No accept values defined - Use the list to check the content sent
+        if (step.list.includes(content)) {
+            logger.log("info", LOG_ID + "isValid() - Work[" + work.id + "] - answer is valid (list)");
+            return true;
+        }
+        logger.log("warn", LOG_ID + "isValid() - Work[" + work.id + "] - answer is not valid", content);
+
+        if ("invalid" in step) {
+            event.emit("onSendMessage", {
+                message: step.invalid,
+                jid: work.jid,
+                type: "list"
+            });
+        }
+        return false;
     }
 }
 
