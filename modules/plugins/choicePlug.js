@@ -13,47 +13,44 @@ class ChoicePlug {
 
         let next = null;
 
-        if(Array.isArray(step.next) && step.next.length > 1) {
+        if (Array.isArray(step.next) && step.next.length > 1) {
 
             logger.log("info", LOG_ID + "getNextStep() - Work[" + work.id + "] - has a complexe next step");
 
-            if(work.history) {
-                let historyItem = work.history.find((item) => {
-                    return item.step === work.step;
-                });
-
-                if (!historyItem) {
-                    logger.log("info", LOG_ID + "getNextStep() - Work[" + work.id + "] - found next step " + next);
-                    return next;
-                }
-                logger.log("info", LOG_ID + "getNextStep() - Work[" + work.id + "] - has an history item for step " + work.step);
-
-                let message = historyItem.content;
-
-                logger.log("info", LOG_ID + "getNextStep() - Work[" + work.id + "] - has an history value " + message);
-
-                // Check the accept
-                if (step.accept && Array.isArray(step.accept)) {
-                    let normalizedMessage = message.trim().toLowerCase().normalize("NFD")
-                        .replace(/[\u0300-\u036f]/g, "")
-                        .replace(/["'!@#$£%¢¨¬&\\*|()_\-+=§`´{}[\]ªº^~,<>.?/°;:]/g, "");
-                    let index = step.accept.indexOf(normalizedMessage);
-                    logger.log("info", LOG_ID + "getNextStep() - Work[" + work.id + "] - has a an index response of " + index);
-                    next = step.next[index] || null;
-                } else if (step.list && Array.isArray(step.list)) {
-                    let index = step.list.indexOf(message);
-                    logger.log("info", LOG_ID + "getNextStep() - Work[" + work.id + "] - has a an index response of " + index);
-                    next = step.next[index] || null;
-                }
-
+            if (!work.history) {
+                logger.log("info", LOG_ID + "getNextStep() - Work[" + work.id + "] - found next step " + next);
+                return next;
             }
-        }
-        else {
+            let historyItem = work.history.find((item) => {
+                return item.step === work.step;
+            });
+
+            if (!historyItem) {
+                logger.log("info", LOG_ID + "getNextStep() - Work[" + work.id + "] - found next step " + next);
+                return next;
+            }
+            logger.log("info", LOG_ID + "getNextStep() - Work[" + work.id + "] - has an history item for step " + work.step);
+
+            let message = historyItem.content;
+
+            logger.log("info", LOG_ID + "getNextStep() - Work[" + work.id + "] - has an history value " + message);
+
+            // Check the accept
+            if (step.accept && Array.isArray(step.accept)) {
+                let index = step.accept.indexOf(this.normalizeContent(message));
+                logger.log("info", LOG_ID + "getNextStep() - Work[" + work.id + "] - has a an index response of " + index);
+                next = step.next[index] || null;
+            } else if (step.list && Array.isArray(step.list)) {
+                let index = step.list.indexOf(message);
+                logger.log("info", LOG_ID + "getNextStep() - Work[" + work.id + "] - has a an index response of " + index);
+                next = step.next[index] || null;
+            }
+        } else {
 
             logger.log("info", LOG_ID + "getNextStep() - Work[" + work.id + "] - has a simple next step");
 
-            if(Array.isArray(step.next)) {
-                if(step.next.length === 1) {
+            if (Array.isArray(step.next)) {
+                if (step.next.length === 1) {
                     next = step.next[0];
                 }
             } else {
@@ -77,17 +74,11 @@ class ChoicePlug {
         });
 
         if (step.list) {
-            let message = "";
-            let list = "";
-
-            step.list.forEach((choice) => {
-                message += "- " + choice + "\r\n";
-                list += list.length === 0 ? choice : ',' + choice;
-            });
+            let {message, messageMarkdown} = this.makeListMessage(step.list);
 
             event.emit("onSendMessage", {
-                message: list,
-                messageMarkdown: message,
+                message: message,
+                messageMarkdown: messageMarkdown,
                 jid: work.jid,
                 type: "list"
             });
@@ -112,7 +103,7 @@ class ChoicePlug {
 
             let next = acceptStep.accept.map(() => step.next[i]);
             step.next.splice(i, 1, ...next);
-            i += next.length -1;
+            i += next.length - 1;
             logger.log("info", LOG_ID + "replaceAccept() - [" + acceptId + "]");
         }
     }
@@ -123,19 +114,11 @@ class ChoicePlug {
         // An accept tag is defined - Use it to check the content sent
         if (step.accept) {
             // If yes check that the content matches one of the item accepted
-            if (step.accept.includes(content && content.trim().toLowerCase())) {
+            if (step.accept.includes(this.normalizeContent(content))) {
                 logger.log("info", LOG_ID + "isValid() - Work[" + work.id + "] - answer is valid (accept)");
                 return true;
             }
-            logger.log("warn", LOG_ID + "isValid() - Work[" + work.id + "] - answer is not valid (accept)", content);
-
-            if ("invalid" in step) {
-                event.emit("onSendMessage", {
-                    message: step.invalid,
-                    jid: work.jid,
-                    type: "list"
-                });
-            }
+            this.emitInvalidMessage(work, step, content, event, logger);
             return false;
         }
 
@@ -148,6 +131,17 @@ class ChoicePlug {
             logger.log("info", LOG_ID + "isValid() - Work[" + work.id + "] - answer is valid (list)");
             return true;
         }
+        this.emitInvalidMessage(work, step, content, event, logger);
+        return false;
+    }
+
+    normalizeContent(content){
+        return content && content.trim().toLowerCase().normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .replace(/["'!@#$£%¢¨¬&\\*|()_\-+=§`´{}[\]ªº^~,<>.?/°;:]/g, "");
+    }
+
+    emitInvalidMessage(work, step, content, event, logger){
         logger.log("warn", LOG_ID + "isValid() - Work[" + work.id + "] - answer is not valid", content);
 
         if ("invalid" in step) {
@@ -157,7 +151,28 @@ class ChoicePlug {
                 type: "list"
             });
         }
-        return false;
+        if ("invalidList" in step && step.invalidList) {
+            let {message, messageMarkdown} =
+                this.makeListMessage(Array.isArray(step.invalidList) ? step.invalidList : step.list);
+
+            event.emit("onSendMessage", {
+                message: message,
+                messageMarkdown: messageMarkdown,
+                jid: work.jid,
+                type: "list"
+            });
+        }
+    }
+
+    makeListMessage(list) {
+        let messageMarkdown = "";
+        let message = "";
+
+        list.forEach((choice) => {
+            messageMarkdown += "- " + choice + "\r\n";
+            message += message.length === 0 ? choice : ',' + choice;
+        });
+        return {message, messageMarkdown};
     }
 }
 
