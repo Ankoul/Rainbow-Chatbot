@@ -2,6 +2,7 @@
 
 const getHashTags = require("./hashtag");
 const Message = require("./message");
+const normalizeMsg = require('./normalizeMsg');
 
 const LOG_ID = "TAGS - ";
 
@@ -47,10 +48,10 @@ class Tags {
 
     qualify(msg) {
         let tags = getHashTags(msg.value);
-        let tag = undefined;
         if(tags.length === 0){
-            tags = [msg.split(' ').shift()];
+            tags = [msg.value && normalizeMsg(msg.value.split(' ').shift())];
         }
+        let tag = undefined;
         do {
             tag = tags.pop();
             if(this.isDefined(tag)) {

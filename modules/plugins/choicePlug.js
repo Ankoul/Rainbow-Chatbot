@@ -1,5 +1,7 @@
 "use strict";
 
+const normalizeMsg = require('../normalizeMsg');
+
 const LOG_ID = "CHOICEPLG - ";
 
 class ChoicePlug {
@@ -37,7 +39,7 @@ class ChoicePlug {
 
             // Check the accept
             if (step.accept && Array.isArray(step.accept)) {
-                let index = step.accept.indexOf(this.normalizeContent(message));
+                let index = step.accept.indexOf(normalizeMsg(message));
                 logger.log("info", LOG_ID + "getNextStep() - Work[" + work.id + "] - has a an index response of " + index);
                 next = step.next[index] || null;
             } else if (step.list && Array.isArray(step.list)) {
@@ -114,7 +116,7 @@ class ChoicePlug {
         // An accept tag is defined - Use it to check the content sent
         if (step.accept) {
             // If yes check that the content matches one of the item accepted
-            if (step.accept.includes(this.normalizeContent(content))) {
+            if (step.accept.includes(normalizeMsg(content))) {
                 logger.log("info", LOG_ID + "isValid() - Work[" + work.id + "] - answer is valid (accept)");
                 return true;
             }
@@ -133,12 +135,6 @@ class ChoicePlug {
         }
         this.emitInvalidMessage(work, step, content, event, logger);
         return false;
-    }
-
-    normalizeContent(content){
-        return content && content.trim().toLowerCase().normalize("NFD")
-            .replace(/[\u0300-\u036f]/g, "")
-            .replace(/["'!@#$£%¢¨¬&\\*|()_\-+=§`´{}[\]ªº^~,<>.?/°;:]/g, "");
     }
 
     emitInvalidMessage(work, step, content, event, logger){
