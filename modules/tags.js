@@ -35,7 +35,7 @@ class Tags {
     }
 
     isDefined(tag) {
-        if(this._tags) {
+        if(tag && this._tags) {
             return (tag in this._tags);
         }
         return false;
@@ -47,21 +47,17 @@ class Tags {
 
     qualify(msg) {
         let tags = getHashTags(msg.value);
-        let foundOrEmpty = false;
-
-        while(!foundOrEmpty) {
-            let tag = tags.pop();
-            if(!tag) {
-                foundOrEmpty = true;
-            }
-            else {
-                if(this.isDefined(tag)) {
-                    msg.tag = tag;
-                    msg.type = Message.MESSAGE_TYPE.COMMAND;
-                    foundOrEmpty = true;
-                }
-            }
+        let tag = undefined;
+        if(tags.length === 0){
+            tags = [msg.split(' ').shift()];
         }
+        do {
+            tag = tags.pop();
+            if(this.isDefined(tag)) {
+                msg.tag = tag;
+                msg.type = Message.MESSAGE_TYPE.COMMAND;
+            }
+        } while(tag);
 
         if(msg.tag && (msg.tag in this._tags)) {
             return this._tags[msg.tag];
