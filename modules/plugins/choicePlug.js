@@ -75,8 +75,8 @@ class ChoicePlug {
             type: "choice"
         });
 
-        if (step.list) {
-            let {message, messageMarkdown} = this.makeListMessage(step.list);
+        let emitList = (list)=>{
+            let {message, messageMarkdown} = this.makeListMessage(list);
 
             event.emit("onSendMessage", {
                 message: message,
@@ -84,6 +84,13 @@ class ChoicePlug {
                 jid: work.jid,
                 type: "list"
             });
+        };
+        if (step.list) {
+            emitList(step.list);
+        }
+        // noinspection JSUnresolvedVariable
+        if (step.list2) {
+            emitList(step.list2);
         }
 
         work.pending = true;
