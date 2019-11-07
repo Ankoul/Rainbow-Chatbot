@@ -1,7 +1,6 @@
 "use strict";
 
 const normalizeMsg = require('../normalizeMsg');
-const Delayer = require('../delayer');
 
 const LOG_ID = "CHOICEPLG - ";
 
@@ -91,7 +90,7 @@ class ChoicePlug {
         }
         // noinspection JSUnresolvedVariable
         if (step.list2) {
-            Delayer.sleep(100).then(() => emitList(step.list2));
+            setTimeout((() => emitList(step.list2)), 100);
         }
 
         work.pending = true;
