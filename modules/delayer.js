@@ -46,9 +46,13 @@ class Delayer {
 
         this._workDelayed[work.id] = work;
 
-        setTimeout(() => {
-            that.delayed(work);            
-        }, work.waiting);
+        Delayer.sleep(work.waiting).then(() => {
+            that.delayed(work);
+        });
+    }
+
+    static sleep(millis) {
+        return new Promise(resolve => setTimeout(resolve, millis));
     }
 }
 

@@ -1,6 +1,7 @@
 "use strict";
 
 const normalizeMsg = require('../normalizeMsg');
+const Delayer = require('../delayer');
 
 const LOG_ID = "CHOICEPLG - ";
 
@@ -65,7 +66,7 @@ class ChoicePlug {
         return next;
     }
 
-    execute(work, step, event, logger) {
+    async execute(work, step, event, logger) {
         logger.log("info", LOG_ID + "execute() - Work[" + work.id + "] - choice");
         this.replaceAccept(work, step, logger);
 
@@ -75,7 +76,7 @@ class ChoicePlug {
             type: "choice"
         });
 
-        let emitList = (list)=>{
+        let emitList = (list) => {
             let {message, messageMarkdown} = this.makeListMessage(list);
 
             event.emit("onSendMessage", {
@@ -90,6 +91,7 @@ class ChoicePlug {
         }
         // noinspection JSUnresolvedVariable
         if (step.list2) {
+            await Delayer.sleep(100);
             emitList(step.list2);
         }
 
