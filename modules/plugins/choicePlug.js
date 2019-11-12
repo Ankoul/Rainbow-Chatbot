@@ -69,11 +69,13 @@ class ChoicePlug {
         logger.log("info", LOG_ID + "execute() - Work[" + work.id + "] - choice");
         this.replaceAccept(work, step, logger);
 
-        event.emit("onSendMessage", {
-            message: step.value ? step.value : "",
-            jid: work.jid,
-            type: "choice"
-        });
+        if(step.value){
+            event.emit("onSendMessage", {
+                message: step.value,
+                jid: work.jid,
+                type: "choice"
+            });
+        }
 
         let emitList = (list)=>{
             let {message, messageMarkdown} = this.makeListMessage(list);

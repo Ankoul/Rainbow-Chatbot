@@ -157,12 +157,12 @@ class RainbowAgent {
                 if(!work && !scenario && ('defaultScenario' in this.options)){
                     msg.value = this.options.defaultScenario;
                     scenario = that.tags.qualify(msg);
-                    if(!scenario){
-                        that.logger.log("warn", LOG_ID + "onmessagereceived() - Incorrect default scenario configured "+this.options.defaultScenario);
-                        return;
-                    }
-                    // Get work if exists
                     work = that.works.getWork(msg, scenario);
+                }
+
+                if(!work && !scenario && ('defaultScenario' in this.options)){
+                    that.logger.log("warn", LOG_ID + "onmessagereceived() - Incorrect default scenario configured "+this.options.defaultScenario);
+                    return;
                 }
                 // Add to queue if work 
                 if(!work) {
