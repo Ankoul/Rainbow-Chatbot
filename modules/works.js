@@ -66,6 +66,10 @@ class Works {
         });
     }
 
+    clean() { // TODO clean memory sometime
+        this._works = this._works.filter((work) => work.state !== Work.STATE.CLOSED && work.state !== Work.STATE.ABORTED);
+    }
+
     getWork(message, scenario) {
 
         let createWork = (jid, tag, from, scenario) => {
