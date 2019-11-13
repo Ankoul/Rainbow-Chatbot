@@ -4,6 +4,7 @@ const LOG_ID = "Factory - ";
 
 const MessagePlug = require('./messagePlug');
 const ChoicePlug = require('./choicePlug');
+const listPlug = require('./listPlug');
 const CommandPlug = require('./commandPlug');
 const QuestionPlug = require('./questionPlug');
 const ExternalPlug = require('./externalPlug');
@@ -14,6 +15,7 @@ class Factory {
         this._event = null;
         this._logger = null;
         this._action = {
+            "list": listPlug,
             "choice": ChoicePlug,
             "command": CommandPlug,
             "message": MessagePlug,
@@ -54,8 +56,6 @@ class Factory {
     }
 
     findNextStep(work, stepId) {
-        let step = null,
-            next = null;
 
         this.log("info", LOG_ID + "findNextStep() - Enter");
 
@@ -64,8 +64,7 @@ class Factory {
             return null;
         }
 
-        step = work.scenario[stepId];
-
+        let step = work.scenario[stepId];
         if(!step) {
             this.log("info", LOG_ID + "findNextStep() - Work[" + work.id + "] has no next step defined" );
             return null;
@@ -75,8 +74,7 @@ class Factory {
             return null;
         }
         
-        next = this._action[step.type].getNextStep(work, step, this._logger);
-
+        let next = this._action[step.type].getNextStep(work, step, this._logger);
         this.log("info", LOG_ID + "findNextStep() - Work[" + work._id + "] has a next step defined " + next );
         return next;
     }
