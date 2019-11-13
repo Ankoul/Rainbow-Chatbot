@@ -49,8 +49,14 @@ class ListPlug {
         }
 
         list.forEach((item) => {
-            messageMarkdown += "- " + item + "  \r\n";
-            message += message.length === 0 ? item : ',' + item;
+            if(typeof item == 'object' && Array.isArray(item.list)){
+                let subList = this.makeListMessage(item.list, item.value);
+                messageMarkdown += "  \r\n" + subList.messageMarkdown;
+                message += "  \r\n" + subList.message;
+            } else {
+                messageMarkdown += "- " + item + "  \r\n";
+                message += message.length === 0 ? item : ',' + item;
+            }
         });
         return {message, messageMarkdown};
     }
