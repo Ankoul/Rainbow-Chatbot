@@ -55,7 +55,7 @@ class ListPlug {
                 message += "  \r\n" + subList.message;
             } else {
                 messageMarkdown += "- " + item + "  \r\n";
-                message += message.length === 0 ? item : ',' + item;
+                message += message.length === 0 ? item : ' ' + item;
             }
         });
         return {message, messageMarkdown};

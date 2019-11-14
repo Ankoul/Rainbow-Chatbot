@@ -175,7 +175,7 @@ class ChoicePlug {
 
         list.forEach((choice) => {
             messageMarkdown += "- " + choice + "  \r\n";
-            message += message.length === 0 ? choice : ',' + choice;
+            message += message.length === 0 ? choice : ' ' + choice;
         });
         return {message, messageMarkdown};
     }
