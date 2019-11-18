@@ -173,8 +173,8 @@ class ChoicePlug {
         let messageMarkdown = "";
         let message = "";
 
-        list.forEach((choice) => {
-            messageMarkdown += "- " + choice + "  \r\n";
+        list.forEach((choice, index) => {
+            messageMarkdown += index === 0 ? "- " + choice :  "  \r\n- " + choice;
             message += message.length === 0 ? choice : ' ' + choice;
         });
         return {message, messageMarkdown};
