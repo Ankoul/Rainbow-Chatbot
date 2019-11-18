@@ -46,9 +46,9 @@ class Tags {
         return this._tags;
     }
 
-    qualify(msg) {
+    qualify(msg, isHashTagRequired) {
         let tags = getHashTags(msg.value);
-        if(tags.length === 0){
+        if(tags.length === 0 && !isHashTagRequired){
             tags = [msg.value && normalizeMsg(msg.value.split(' ').shift())];
         }
         let tag = undefined;

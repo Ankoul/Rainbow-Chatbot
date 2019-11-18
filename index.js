@@ -149,7 +149,8 @@ class RainbowAgent {
             if (this._isEnabled) {
 
                 // Qualify message (check tag)
-                let scenario = that.tags.qualify(msg);
+                // noinspection JSUnresolvedVariable
+                let scenario = that.tags.qualify(msg, this.options.isHashTagRequired);
 
                 // Get work if exists
                 work = that.works.getWork(msg, scenario);
