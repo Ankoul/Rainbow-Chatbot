@@ -43,12 +43,14 @@ class ListPlug {
     makeListMessage(list, msg) {
         let messageMarkdown = "";
         let message = "";
+        if(!Array.isArray(list)){
+            messageMarkdown = "  \r\n" + msg + "  \r\n";
+            message = "  \r\n" + msg + "  \r\n";
+            return {message, messageMarkdown};
+        }
         if (msg) {
             messageMarkdown = msg + "  \r\n";
             message = msg + "  \r\n";
-        }
-        if(!Array.isArray(list)){
-            return {message, messageMarkdown};
         }
 
         list.forEach((item, index) => {
