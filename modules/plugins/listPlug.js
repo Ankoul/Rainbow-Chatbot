@@ -47,9 +47,12 @@ class ListPlug {
             messageMarkdown = msg + "  \r\n";
             message = msg + "  \r\n";
         }
+        if(!Array.isArray(list)){
+            return {message, messageMarkdown};
+        }
 
         list.forEach((item, index) => {
-            if(typeof item == 'object' && Array.isArray(item.list)){
+            if(typeof item == 'object' && (Array.isArray(item.list) || typeof item.value === 'string')){
                 let subList = this.makeListMessage(item.list, item.value);
                 messageMarkdown += "  \r\n" + subList.messageMarkdown;
                 message += "  \r\n" + subList.message;
