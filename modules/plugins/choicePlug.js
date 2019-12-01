@@ -39,7 +39,8 @@ class ChoicePlug {
 
             // Check the accept
             if (step.accept && Array.isArray(step.accept)) {
-                let index = step.accept.indexOf(normalizeMsg(message));
+                // noinspection JSUnresolvedVariable
+                let index = step.acceptRegex ? this.indexOfMatches(message, step.accept) : step.accept.indexOf(normalizeMsg(message));
                 logger.log("info", LOG_ID + "getNextStep() - Work[" + work.id + "] - has a an index response of " + index);
                 next = step.next[index] || null;
             } else if (step.list && Array.isArray(step.list)) {
@@ -69,7 +70,7 @@ class ChoicePlug {
         logger.log("info", LOG_ID + "execute() - Work[" + work.id + "] - choice");
         this.replaceAccept(work, step, logger);
 
-        if(step.value){
+        if (step.value) {
             event.emit("onSendMessage", {
                 message: step.value,
                 jid: work.jid,
@@ -77,7 +78,7 @@ class ChoicePlug {
             });
         }
 
-        let emitList = (list)=>{
+        let emitList = (list) => {
             let {message, messageMarkdown} = this.makeListMessage(list);
 
             event.emit("onSendMessage", {
@@ -125,7 +126,8 @@ class ChoicePlug {
         // An accept tag is defined - Use it to check the content sent
         if (step.accept) {
             // If yes check that the content matches one of the item accepted
-            if (step.accept.includes(normalizeMsg(content))) {
+            // noinspection JSUnresolvedVariable
+            if (step.acceptRegex && this.matches(content, step.accept) || step.accept.includes(normalizeMsg(content))) {
                 logger.log("info", LOG_ID + "isValid() - Work[" + work.id + "] - answer is valid (accept)");
                 return true;
             }
@@ -146,7 +148,7 @@ class ChoicePlug {
         return false;
     }
 
-    emitInvalidMessage(work, step, content, event, logger){
+    emitInvalidMessage(work, step, content, event, logger) {
         logger.log("warn", LOG_ID + "isValid() - Work[" + work.id + "] - answer is not valid", content);
 
         if ("invalid" in step) {
@@ -174,10 +176,22 @@ class ChoicePlug {
         let message = "";
 
         list.forEach((choice, index) => {
-            messageMarkdown += index === 0 ? "- " + choice :  "  \r\n- " + choice;
+            messageMarkdown += index === 0 ? "- " + choice : "  \r\n- " + choice;
             message += message.length === 0 ? choice : ' ' + choice;
         });
         return {message, messageMarkdown};
+    }
+
+    matches(message, accept) {
+        return this.indexOfMatches(message, accept) > -1;
+    }
+
+    indexOfMatches(message, accept) {
+        const normalizedMsg = normalizeMsg(message);
+        for (const [index, value] of accept.entries()) {
+            if (normalizedMsg.indexOf(value) > -1) return index;
+        }
+        return -1;
     }
 }
 
