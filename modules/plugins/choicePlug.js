@@ -63,7 +63,8 @@ class ChoicePlug {
 
         logger.log("info", LOG_ID + "getNextStep() - Work[" + work.id + "] - found next step " + next);
 
-        return next;
+        // noinspection JSUnresolvedVariable
+        return next || step.invalidNext || null;
     }
 
     execute(work, step, event, logger) {
@@ -130,12 +131,11 @@ class ChoicePlug {
         if (step.accept) {
             // If yes check that the content matches one of the item accepted
             // noinspection JSUnresolvedVariable
-            if (step.acceptRegex && this.matches(content, step.accept) || step.accept.includes(normalizeMsg(content))) {
+            if (step.acceptRegex ? this.matches(content, step.accept) : step.accept.includes(normalizeMsg(content))) {
                 logger.log("info", LOG_ID + "isValid() - Work[" + work.id + "] - answer is valid (accept)");
                 return true;
             }
-            this.emitInvalidMessage(work, step, content, event, logger);
-            return false;
+            return !this.emitInvalidMessage(work, step, content, event, logger);
         }
 
         // Answer is not valid if list tag and accept tag are not defined
@@ -147,13 +147,21 @@ class ChoicePlug {
             logger.log("info", LOG_ID + "isValid() - Work[" + work.id + "] - answer is valid (list)");
             return true;
         }
-        this.emitInvalidMessage(work, step, content, event, logger);
-        return false;
+        return !this.emitInvalidMessage(work, step, content, event, logger);
     }
 
     emitInvalidMessage(work, step, content, event, logger) {
         logger.log("warn", LOG_ID + "isValid() - Work[" + work.id + "] - answer is not valid", content);
 
+        // noinspection JSUnresolvedVariable
+        if(step.invalidCounter === 0){
+            return false;
+        }
+        // noinspection JSUnresolvedVariable
+        if(step.invalidCounter > 0){
+            // noinspection JSUnresolvedVariable
+            step.invalidCounter--;
+        }
         if ("invalid" in step) {
             event.emit("onSendMessage", {
                 message: step.invalid,
@@ -172,6 +180,7 @@ class ChoicePlug {
                 type: "list"
             });
         }
+        return true;
     }
 
     makeListMessage(list) {
