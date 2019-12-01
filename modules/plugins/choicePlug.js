@@ -105,6 +105,9 @@ class ChoicePlug {
         if (!step.accept || !Array.isArray(step.accept)) {
             return;
         }
+        if(!Array.isArray(step.next)){
+            step.next = step.accept.map(()=> step.next);
+        }
         for (let i = 0; i < step.accept.length; i++) {
             let acceptId = step.accept[i];
             if (!acceptId.startsWith('$')) {
