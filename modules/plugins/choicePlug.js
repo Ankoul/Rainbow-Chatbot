@@ -154,13 +154,13 @@ class ChoicePlug {
         logger.log("warn", LOG_ID + "isValid() - Work[" + work.id + "] - answer is not valid", content);
 
         // noinspection JSUnresolvedVariable
-        if(step.invalidCounter === 0){
+        if(work.invalidCounter === 0){
             return false;
         }
         // noinspection JSUnresolvedVariable
         if(step.invalidCounter > 0){
             // noinspection JSUnresolvedVariable
-            step.invalidCounter--;
+            work.invalidCounter = work.invalidCounter ? work.invalidCounter - 1 : step.invalidCounter - 1;
         }
         if ("invalid" in step) {
             event.emit("onSendMessage", {
