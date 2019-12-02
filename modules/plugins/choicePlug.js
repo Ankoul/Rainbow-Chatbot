@@ -90,11 +90,11 @@ class ChoicePlug {
             });
         };
         if (step.list) {
-            setTimeout((() => emitList(step.list)), 20);
+            setTimeout((() => emitList(step.list)), step.waitList || 0);
         }
         // noinspection JSUnresolvedVariable
         if (step.list2) {
-            setTimeout((() => emitList(step.list2)), 120);
+            setTimeout((() => emitList(step.list2)), step.waitList ? step.waitList + 100 : 100);
         }
 
         work.pending = true;
